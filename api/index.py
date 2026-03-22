@@ -34,7 +34,8 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"],
                    allow_methods=["*"], allow_headers=["*"])
 
 # Load engine once at startup
-MODEL_DIR = os.getenv("MODEL_DIR", os.path.join(os.path.dirname(__file__), "models"))
+# On Vercel, the function runs in /api/, so we look for models/ in the project root
+MODEL_DIR = os.getenv("MODEL_DIR", os.path.join(os.path.dirname(os.path.dirname(__file__)), "models"))
 engine_scorer = PamojaScoreEngine(model_dir=MODEL_DIR)
 
 # API key store from environment
