@@ -1,11 +1,14 @@
 FROM python:3.11
 
-# Install cargo/rustc in case packages need to be compiled from source
-RUN apt-get update && apt-get install -y cargo rustc build-essential && rm -rf /var/lib/apt/lists/*
+# Install required system dependencies for compilation
+RUN apt-get update && apt-get install -y build-essential curl libssl-dev libffi-dev pkg-config && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m -u 1000 user
 USER user
-ENV PATH="/home/user/.local/bin:$PATH"
+ENV PATH="/home/user/.cargo/bin:/home/user/.local/bin:$PATH"
+
+# Install modern Rust compiler
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 WORKDIR /app
 
