@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 interface User {
   email: string
   full_name: string
-  role: 'customer' | 'sme'
+  role: 'lender' | 'sme'
 }
 
 interface AuthContextType {
@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const savedToken = localStorage.getItem('pamoja_token')
-    const savedRole = localStorage.getItem('pamoja_role') as 'customer' | 'sme'
+    const savedRole = localStorage.getItem('pamoja_role') as 'lender' | 'sme'
     const savedName = localStorage.getItem('pamoja_name')
     const savedEmail = localStorage.getItem('pamoja_email')
 
@@ -44,13 +44,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('pamoja_email', email)
     
     setToken(token)
-    setUser({ email, role: role as 'customer' | 'sme', full_name })
+    setUser({ email, role: role as 'lender' | 'sme', full_name })
     
     // Redirect based on role
-    if (role === 'sme') {
-      router.push('/dashboard/sme')
+    if (role === 'lender') {
+      router.push('/lender')
     } else {
-      router.push('/dashboard/customer')
+      router.push('/dashboard/sme')
     }
   }
 

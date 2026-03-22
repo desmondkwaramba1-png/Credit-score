@@ -9,7 +9,7 @@ import { useEffect } from 'react'
 
 const STEPS = ['Enter phone', 'Consent via USSD', 'View score']
 
-export default function CustomerPage() {
+export default function SMEScorePage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [step, setStep] = useState(0)
@@ -19,7 +19,7 @@ export default function CustomerPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!authLoading && (!user || user.role !== 'customer')) {
+    if (!authLoading && (!user || user.role !== 'sme')) {
       router.push('/login')
     }
   }, [user, authLoading, router])

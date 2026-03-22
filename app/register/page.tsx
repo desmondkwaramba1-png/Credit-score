@@ -9,7 +9,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
-  const [role, setRole] = useState<'customer' | 'sme'>('customer')
+  const [role, setRole] = useState<'lender' | 'sme'>('lender')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const { login } = useAuth()
@@ -26,8 +26,8 @@ export default function RegisterPage() {
         full_name: fullName, 
         role 
       })
-      const { access_token, role: userRole, full_name, email: userEmail } = res.data
-      login(access_token, userRole, full_name, userEmail)
+      const { access_token, role: userRole, full_name } = res.data
+      login(access_token, userRole, full_name, email)
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Registration failed. Please try again.')
     } finally {
@@ -61,16 +61,16 @@ export default function RegisterPage() {
             <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
-                onClick={() => setRole('customer')}
+                onClick={() => setRole('lender')}
                 className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                  role === 'customer' 
+                  role === 'lender' 
                   ? 'border-brand bg-brand/10 text-brand ring-1 ring-brand' 
                   : 'border-white/[0.08] bg-navy text-slate-500 hover:border-white/20'
                 }`}
               >
                 <User size={24} />
-                <span className="text-sm font-semibold">I am a Borrower</span>
-                <span className="text-[10px] opacity-60">Check my score</span>
+                <span className="text-sm font-semibold">I am a Lender</span>
+                <span className="text-[10px] opacity-60">Score borrowers</span>
               </button>
               <button
                 type="button"
@@ -83,7 +83,7 @@ export default function RegisterPage() {
               >
                 <Building2 size={24} />
                 <span className="text-sm font-semibold">I am an SME</span>
-                <span className="text-[10px] opacity-60">Score my business</span>
+                <span className="text-[10px] opacity-60">My credit insights</span>
               </button>
             </div>
 

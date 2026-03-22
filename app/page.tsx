@@ -47,7 +47,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      if (user.role === 'customer') router.push('/dashboard/customer')
+      if (user.role === 'lender') router.push('/lender')
       else if (user.role === 'sme') router.push('/dashboard/sme')
     }
   }, [user, loading, router])

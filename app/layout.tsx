@@ -1,21 +1,19 @@
-'use client'
+import React, { useState, useEffect, useMemo } from 'react'
 import './globals.css'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, CreditCard, User, Code2,
   Layers, ChevronRight, Zap, Clock, LogOut, Menu, X
 } from 'lucide-react'
 import { AuthProvider, useAuth } from '../components/AuthProvider'
-import { useState } from 'react'
 
 const nav = [
   { href: '/',            icon: LayoutDashboard, label: 'Home' },
-  { href: '/dashboard/customer', icon: LayoutDashboard, label: 'My Dashboard', role: 'customer' },
   { href: '/dashboard/sme',      icon: LayoutDashboard, label: 'SME Dashboard', role: 'sme' },
-  { href: '/lender',      icon: CreditCard,       label: 'Score a Borrower' },
-  { href: '/customer',    icon: User,             label: 'My Credit Score' },
-  { href: '/batch',       icon: Layers,           label: 'Batch Scoring' },
+  { href: '/lender',      icon: CreditCard,       label: 'Score a Borrower', role: 'lender' },
+  { href: '/customer',    icon: User,             label: 'My Credit Score', role: 'sme' },
+  { href: '/batch',       icon: Layers,           label: 'Batch Scoring', role: 'lender' },
   { href: '/history',     icon: Clock,            label: 'Score History' },
   { href: '/developer',   icon: Code2,            label: 'API & Docs' },
 ]
@@ -26,22 +24,19 @@ function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   
   if (loading) return null
+  if (!user) return null
 
   const filteredNav = nav.filter(item => {
     // If has specific role requirement
     if (item.role && (!user || user.role !== item.role)) return false
     
-    // Public paths
-    if (!user) return ['/', '/developer'].includes(item.href) && !item.role
-    
-    // Customer paths
-    if (user.role === 'customer') {
-      return ['/', '/dashboard/customer', '/customer', '/history'].includes(item.href)
+    // Role-specific visibility
+    if (user.role === 'sme') {
+      return ['/', '/dashboard/sme', '/customer', '/history'].includes(item.href)
     }
     
-    // SME paths
-    if (user.role === 'sme') {
-      return ['/', '/dashboard/sme', '/lender', '/batch', '/history', '/developer'].includes(item.href)
+    if (user.role === 'lender') {
+      return ['/', '/lender', '/batch', '/history', '/developer'].includes(item.href)
     }
     
     return true
@@ -93,25 +88,18 @@ function Sidebar() {
 
         {/* Auth Section */}
         <div className="p-4 border-t border-white/[0.06]">
-          {user ? (
-            <div className="space-y-3">
-              <div className="px-3">
-                <div className="text-sm font-medium text-white truncate">{user.full_name}</div>
-                <div className="text-[10px] text-brand uppercase tracking-wider font-bold">{user.role}</div>
-              </div>
-              <button
-                onClick={logout}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-400 hover:bg-red-400/10 transition-colors"
-              >
-                <LogOut size={16} /> Logout
-              </button>
+          <div className="space-y-3">
+            <div className="px-3">
+              <div className="text-sm font-medium text-white truncate">{user.full_name}</div>
+              <div className="text-[10px] text-brand uppercase tracking-wider font-bold">{user.role}</div>
             </div>
-          ) : (
-            <Link href="/login" onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-brand hover:bg-brand/10 transition-colors">
-              <User size={16} /> Login / Register
-            </Link>
-          )}
+            <button
+              onClick={logout}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-400 hover:bg-red-400/10 transition-colors"
+            >
+              <LogOut size={16} /> Logout
+            </button>
+          </div>
         </div>
 
         {/* Bottom Info */}
@@ -134,6 +122,37 @@ function Sidebar() {
   )
 }
 
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth()
+  const pathname = usePathname()
+  const router = React.useMemo(() => require('next/navigation').useRouter(), [])
+
+  React.useEffect(() => {
+    if (!loading && !user && !['/login', '/register'].includes(pathname)) {
+      router.push('/login')
+    }
+  }, [user, loading, pathname, router])
+
+  if (loading) return (
+    <div className="min-h-screen bg-navy flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+
+  const isAuthPage = ['/login', '/register'].includes(pathname)
+
+  if (!user && !isAuthPage) return null
+
+  return (
+    <div className="flex flex-col md:flex-row min-h-screen bg-navy text-slate-200">
+      {!isAuthPage && <Sidebar />}
+      <main className={`flex-1 p-4 md:p-8 pt-20 md:pt-8 min-h-screen ${!isAuthPage ? 'md:ml-64' : ''}`}>
+        {children}
+      </main>
+    </div>
+  )
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -144,12 +163,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <AuthProvider>
-          <div className="flex flex-col md:flex-row min-h-screen bg-navy text-slate-200">
-            <Sidebar />
-            <main className="flex-1 md:ml-64 p-4 md:p-8 pt-20 md:pt-8 min-h-screen">
-              {children}
-            </main>
-          </div>
+          <AuthGuard>
+            {children}
+          </AuthGuard>
         </AuthProvider>
       </body>
     </html>

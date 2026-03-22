@@ -151,7 +151,7 @@ class UserRegister(BaseModel):
     email: str
     password: str
     full_name: str
-    role: str  # 'customer' or 'sme'
+    role: str  # 'lender' or 'sme'
 
 class UserLogin(BaseModel):
     email: str
@@ -224,7 +224,7 @@ def health():
             "auc_loan_model": 0.9459}
 
 @app.post("/score")
-def score_borrower(req: ScoreRequest, key=Depends(verify_key), db: Session = Depends(get_db)):
+def score_borrower(req: ScoreRequest, key=Depends(verify_key), db: Session = Depends(get_db), current_user: models_db.User = Depends(get_current_user)):
     result = engine_scorer.score(req.data.model_dump())
     
     # Save to database
@@ -249,7 +249,7 @@ def score_borrower(req: ScoreRequest, key=Depends(verify_key), db: Session = Dep
     }
 
 @app.post("/score/loan")
-def score_loan(req: LoanRequest, key=Depends(verify_key), db: Session = Depends(get_db)):
+def score_loan(req: LoanRequest, key=Depends(verify_key), db: Session = Depends(get_db), current_user: models_db.User = Depends(get_current_user)):
     result = engine_scorer.score_loan(req.model_dump())
     
     # Save to database
@@ -268,7 +268,7 @@ def score_loan(req: LoanRequest, key=Depends(verify_key), db: Session = Depends(
     return {"status": "ok", "phone": req.phone, "result": result}
 
 @app.post("/score/batch")
-def score_batch(req: BatchRequest, key=Depends(verify_key), db: Session = Depends(get_db)):
+def score_batch(req: BatchRequest, key=Depends(verify_key), db: Session = Depends(get_db), current_user: models_db.User = Depends(get_current_user)):
     if len(req.borrowers) > 100:
         raise HTTPException(400, "Max 100 per batch")
     results = []
@@ -301,8 +301,8 @@ def score_batch(req: BatchRequest, key=Depends(verify_key), db: Session = Depend
 def get_history(db: Session = Depends(get_db), current_user: models_db.User = Depends(get_current_user)):
     query = db.query(models_db.ScoreRecord)
     
-    # Isolation: Customers only see their own scores. SMEs can see all (for now).
-    if current_user.role == 'customer':
+    # Isolation: Lenders see all scored records. SMEs only see their own scores.
+    if current_user.role == 'sme':
         query = query.filter(models_db.ScoreRecord.phone == current_user.email) # Assuming email/phone link for demo
     
     records = query.order_by(models_db.ScoreRecord.created_at.desc()).all()
