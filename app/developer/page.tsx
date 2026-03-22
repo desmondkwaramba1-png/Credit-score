@@ -134,7 +134,7 @@ export default function DeveloperPage() {
       const res = await axios.get('/api/health')
       setTestResult(res.data)
     } catch {
-      setTestError('Backend offline. Run: cd backend && uvicorn main:app --reload')
+      setTestError('Backend offline. Run: uvicorn api.index:app --reload')
     } finally {
       setTestLoading(false)
     }

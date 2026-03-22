@@ -38,7 +38,7 @@ export default function CustomerPage() {
       }, { headers: { 'X-API-Key': 'pk_demo_zw_pamoja2026' } })
       setResult(res.data.result)
     } catch (e: any) {
-      setError('Backend offline — start uvicorn main:app in the backend folder.')
+      setError('Backend offline — ensure api.index:app is running or Vercel secrets are set.')
       setStep(0)
     } finally {
       setLoading(false)

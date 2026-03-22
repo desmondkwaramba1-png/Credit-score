@@ -55,7 +55,7 @@ export default function Dashboard() {
           </span>
           {apiOk === false && (
             <span className="flex items-center gap-1 text-xs text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">
-              <AlertCircle size={11} /> Backend offline — start uvicorn
+              <AlertCircle size={11} /> Backend offline — ensure the API functions are running or Vercel secrets are set.
             </span>
           )}
           {apiOk === true && (
