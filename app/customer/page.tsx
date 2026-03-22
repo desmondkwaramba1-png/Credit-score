@@ -3,15 +3,26 @@ import { useState } from 'react'
 import axios from 'axios'
 import { ScoreCard } from '../../components/ScoreCard'
 import { Loader2, Phone, ShieldCheck } from 'lucide-react'
+import { useAuth } from '../../components/AuthProvider'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 const STEPS = ['Enter phone', 'Consent via USSD', 'View score']
 
 export default function CustomerPage() {
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
   const [step, setStep] = useState(0)
   const [phone, setPhone] = useState('')
   const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!authLoading && (!user || user.role !== 'customer')) {
+      router.push('/login')
+    }
+  }, [user, authLoading, router])
 
   const requestScore = async () => {
     if (!phone.trim()) return

@@ -37,13 +37,26 @@ function ScoreBar({ score }: { score: number }) {
   )
 }
 
-export default function Dashboard() {
+import { useAuth } from '../components/AuthProvider'
+import { useRouter } from 'next/navigation'
+
+export default function LandingPage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
   const [apiOk, setApiOk] = useState<boolean | null>(null)
 
   useEffect(() => {
-    fetch('/api/health').then(r => r.ok ? setApiOk(true) : setApiOk(false))
-      .catch(() => setApiOk(false))
+    if (!loading && user) {
+      if (user.role === 'customer') router.push('/dashboard/customer')
+      else if (user.role === 'sme') router.push('/dashboard/sme')
+    }
+  }, [user, loading, router])
+
+  useEffect(() => {
+    fetch('/api/health').then(res => setApiOk(res.ok)).catch(() => setApiOk(false))
   }, [])
+
+  if (loading) return null
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
@@ -73,7 +86,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 fade-up-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 fade-up-2">
         {STATS.map(({ label, value, sub, icon: Icon, color }) => (
           <div key={label} className="bg-navy-2 border border-white/[0.06] rounded-xl p-4">
             <div className={`${color} mb-2`}><Icon size={18} /></div>
@@ -85,11 +98,11 @@ export default function Dashboard() {
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 fade-up-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8 fade-up-3">
         {[
-          { href: '/lender', title: 'Score a Borrower', desc: 'Enter borrower details and get an instant PAMOJA Credit Score with loan recommendation.', cta: 'Open scorer', color: 'border-brand/30 hover:border-brand/60' },
-          { href: '/customer', title: 'Check My Score', desc: 'Borrowers can see their own PAMOJA Credit Score, what affects it, and how to improve.', cta: 'Check score', color: 'border-sky-500/30 hover:border-sky-500/60' },
-          { href: '/developer', title: 'API Integration', desc: 'REST API with Python, JavaScript, and PHP examples. Full schema and live endpoint tester.', cta: 'View docs', color: 'border-purple-500/30 hover:border-purple-500/60' },
+          { href: '/lender', title: 'Score a Borrower', desc: 'Enter borrower details and get an instant PAMOJA Credit Score.', cta: 'Open scorer', color: 'border-brand/30 hover:border-brand/60' },
+          { href: '/customer', title: 'Check My Score', desc: 'Borrowers can see their own PAMOJA Credit Score and insights.', cta: 'Check score', color: 'border-sky-500/30 hover:border-sky-500/60' },
+          { href: '/developer', title: 'API Integration', desc: 'REST API with Python examples and schema tester.', cta: 'View docs', color: 'border-purple-500/30 hover:border-purple-500/60' },
         ].map(({ href, title, desc, cta, color }) => (
           <Link key={href} href={href}
             className={`group block bg-navy-2 border ${color} rounded-xl p-5 transition-all duration-200 hover:bg-navy-3`}>

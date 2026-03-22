@@ -116,28 +116,44 @@ export default function LenderPage() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="mb-6 fade-up">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+      <div className="fade-up">
         <h1 className="text-2xl font-serif font-bold text-white">Score a Borrower</h1>
         <p className="text-slate-400 text-sm mt-1">
-          Enter borrower details to get an instant PAMOJA Credit Score with loan recommendation.
+          Enter borrower details to get an instant PAMOJA Credit Score.
         </p>
       </div>
 
       {/* Presets */}
-      <div className="flex gap-2 mb-6 flex-wrap fade-up-2">
-        <span className="text-xs text-slate-500 self-center mr-1">Load preset:</span>
+      <div className="flex gap-2 flex-wrap fade-up-2">
+        <span className="text-xs text-slate-500 self-center mr-1">Presets:</span>
         {Object.keys(PRESETS).map(p => (
           <button key={p} onClick={() => loadPreset(p as keyof typeof PRESETS)}
-            className="text-xs px-3 py-1.5 bg-navy-2 border border-white/[0.08] rounded-lg text-slate-300 hover:text-white hover:border-brand/40 transition-all">
+            className="text-[10px] px-2.5 py-1.5 bg-navy-2 border border-white/[0.08] rounded-lg text-slate-300 hover:text-white transition-all">
             {p}
           </button>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Result */}
+        <div className="lg:col-span-3 order-1 lg:order-2">
+          {result ? (
+            <ScoreCard result={result} borrowerName={result.borrowerName} />
+          ) : (
+            <div className="h-full min-h-64 bg-navy-2 border border-white/[0.06] rounded-2xl flex items-center justify-center">
+              <div className="text-center text-slate-500">
+                <div className="text-4xl mb-3 opacity-20">◎</div>
+                <div className="text-sm">Fill in borrower details and click</div>
+                <div className="text-sm font-medium text-slate-400 mt-1">"Generate PAMOJA Score"</div>
+                <div className="mt-4 text-xs text-slate-600">or load a preset to see a demo</div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Form */}
-        <div className="lg:col-span-2 space-y-4 fade-up">
+        <div className="lg:col-span-2 order-2 lg:order-1 space-y-4 fade-up">
           <div className="bg-navy-2 border border-white/[0.06] rounded-xl p-5 space-y-4">
             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Identity</h3>
             <div className="grid grid-cols-2 gap-3">

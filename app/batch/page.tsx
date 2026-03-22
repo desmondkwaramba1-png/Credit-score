@@ -90,16 +90,15 @@ export default function BatchPage() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="mb-6 fade-up">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+      <div className="fade-up">
         <h1 className="text-2xl font-serif font-bold text-white">Batch Scoring</h1>
         <p className="text-slate-400 text-sm mt-1">
           Upload a CSV of borrowers and get PAMOJA scores for all of them at once.
-          Used by MFIs to score their entire loan book.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 fade-up-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-up-2">
         {/* Upload */}
         <div className="lg:col-span-2">
           <div className="bg-navy-2 border border-dashed border-white/[0.12] rounded-xl p-8 text-center hover:border-brand/40 transition-all">

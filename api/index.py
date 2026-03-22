@@ -16,6 +16,10 @@ import secrets
 from score_engine import PamojaScoreEngine
 from database import engine, Base, get_db
 import models_db
+import auth
+from auth import get_password_hash, verify_password, create_access_token, get_current_user
+
+# ... (rest of imports)
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -143,6 +147,73 @@ class LoanRequest(BaseModel):
 class BatchRequest(BaseModel):
     borrowers: List[ScoreRequest]
 
+class UserRegister(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    role: str  # 'customer' or 'sme'
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    role: str
+    full_name: str
+
+
+# ── AUTH ENDPOINTS ─────────────────────────────────────────────
+@app.post("/auth/register", response_model=Token)
+def register(user_data: UserRegister, db: Session = Depends(get_db)):
+    # Check if user exists
+    existing_user = db.query(models_db.User).filter(models_db.User.email == user_data.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create new user
+    hashed_pwd = get_password_hash(user_data.password)
+    new_user = models_db.User(
+        email=user_data.email,
+        hashed_password=hashed_pwd,
+        full_name=user_data.full_name,
+        role=user_data.role
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    # Return token immediately
+    access_token = create_access_token(data={"sub": new_user.email})
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer", 
+        "role": new_user.role,
+        "full_name": new_user.full_name
+    }
+
+@app.post("/auth/login", response_model=Token)
+def login(credentials: UserLogin, db: Session = Depends(get_db)):
+    user = db.query(models_db.User).filter(models_db.User.email == credentials.email).first()
+    if not user or not verify_password(credentials.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    access_token = create_access_token(data={"sub": user.email})
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer", 
+        "role": user.role,
+        "full_name": user.full_name
+    }
+
+@app.get("/auth/me")
+def get_me(current_user: models_db.User = Depends(get_current_user)):
+    return {
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "role": current_user.role
+    }
 
 # ── ENDPOINTS ──────────────────────────────────────────────────
 @app.get("/health")
@@ -227,8 +298,14 @@ def score_batch(req: BatchRequest, key=Depends(verify_key), db: Session = Depend
     return {"status": "ok", "count": len(results), "results": results}
 
 @app.get("/history")
-def get_history(limit: int = 50, db: Session = Depends(get_db), key=Depends(verify_key)):
-    records = db.query(models_db.ScoreRecord).order_by(models_db.ScoreRecord.created_at.desc()).limit(limit).all()
+def get_history(db: Session = Depends(get_db), current_user: models_db.User = Depends(get_current_user)):
+    query = db.query(models_db.ScoreRecord)
+    
+    # Isolation: Customers only see their own scores. SMEs can see all (for now).
+    if current_user.role == 'customer':
+        query = query.filter(models_db.ScoreRecord.phone == current_user.email) # Assuming email/phone link for demo
+    
+    records = query.order_by(models_db.ScoreRecord.created_at.desc()).all()
     return {"status": "ok", "count": len(records), "history": records}
 
 @app.get("/docs/schema")

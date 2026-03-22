@@ -18,15 +18,44 @@ const BAND_COLOR: Record<string, string> = {
 }
 
 export default function HistoryPage() {
+  const { user, token, loading: authLoading } = useAuth()
+  const router = useRouter()
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [selected, setSelected] = useState<HistoryItem | null>(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('pamoja_score_history')
-      if (raw) setHistory(JSON.parse(raw))
-    } catch {}
-  }, [])
+    if (!authLoading && !user) {
+      router.push('/login')
+      return
+    }
+
+    const fetchHistory = async () => {
+      setLoading(true)
+      try {
+        const res = await axios.get('/api/history', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        setHistory(res.data.history.map((h: any) => ({
+          id: h.id,
+          timestamp: h.created_at,
+          borrowerName: h.borrower_name,
+          phone: h.phone,
+          result: h.result
+        })))
+      } catch (e) {
+        // Fallback to local
+        const raw = localStorage.getItem('pamoja_score_history')
+        if (raw) setHistory(JSON.parse(raw))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (user) fetchHistory()
+  }, [user, authLoading, router, token])
+
+  if (authLoading) return <div className="p-8 text-slate-500 animate-pulse">Checking authorization...</div>
 
   const clear = () => { localStorage.removeItem('pamoja_score_history'); setHistory([]); setSelected(null) }
 
@@ -41,11 +70,11 @@ export default function HistoryPage() {
     : 0
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="mb-6 fade-up flex items-start justify-between">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+      <div className="fade-up flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-serif font-bold text-white">Score History</h1>
-          <p className="text-slate-400 text-sm mt-1">All borrowers you have scored in this browser session.</p>
+          <p className="text-slate-400 text-sm mt-1">Recently scored borrowers.</p>
         </div>
         {history.length > 0 && (
           <button onClick={clear} className="text-xs text-slate-500 hover:text-red-400 transition-colors border border-white/[0.06] px-3 py-1.5 rounded-lg">
