@@ -89,25 +89,18 @@ Demo API key: `pk_demo_zw_pamoja2026`
 
 ## Deploy to production
 
-### Backend (Railway.app — free)
-```bash
-# Install Railway CLI
-npm i -g @railway/cli
-railway login
-cd backend
-railway init
-railway up
-```
+### One-Click Deploy (Render)
+1. Push this repo to GitHub.
+2. Log in to [Render](https://render.com).
+3. Click **Blueprint** -> **New Blueprint**.
+4. Select this repository.
+5. Render will automatically provision the **PostgreSQL database**, **FastAPI Backend**, and **Next.js Frontend**.
 
-### Frontend (Vercel — free)
-```bash
-cd frontend
-npm i -g vercel
-vercel
-# Set env var: NEXT_PUBLIC_API_URL=https://your-backend.railway.app
-```
-
-Update `next.config.js` to point to your deployed backend URL.
+### Manual Setup
+If you prefer manual setup:
+1. **Backend**: Create a "Web Service" on Render. Root: `backend`. Build: `pip install -r requirements.txt`. Start: `uvicorn main:app --host 0.0.0.0`.
+2. **Database**: Create a "PostgreSQL" instance on Render. Copy the Internal Database URL to the backend's `DATABASE_URL` env var.
+3. **Frontend**: Create a "Web Service" on Vercel or Render. Root: `frontend`. Set `NEXT_PUBLIC_API_URL` to your backend URL.
 
 ---
 
