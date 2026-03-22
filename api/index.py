@@ -34,8 +34,22 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"],
                    allow_methods=["*"], allow_headers=["*"])
 
 # Load engine once at startup
-# On Vercel, the function runs in /api/, so we look for models/ in the project root
-MODEL_DIR = os.getenv("MODEL_DIR", os.path.join(os.path.dirname(os.path.dirname(__file__)), "models"))
+# Robust path detection for Local, Vercel, and Docker/HuggingFace
+possible_paths = [
+    os.path.join(os.path.dirname(__file__), "models"), # Local/Docker
+    os.path.join(os.path.dirname(os.path.dirname(__file__)), "models"), # Vercel
+    os.path.join(os.getcwd(), "models"), # Current working dir
+]
+MODEL_DIR = os.getenv("MODEL_DIR")
+if not MODEL_DIR:
+    for path in possible_paths:
+        if os.path.exists(path):
+            MODEL_DIR = path
+            break
+    if not MODEL_DIR:
+        MODEL_DIR = possible_paths[0] # Fallback
+
+logger.info(f"Using model directory: {MODEL_DIR}")
 engine_scorer = PamojaScoreEngine(model_dir=MODEL_DIR)
 
 # API key store from environment
