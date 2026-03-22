@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY main.py database.py models_db.py score_engine.py .env ./
+COPY models/ ./models/
 
 # Hugging Face Spaces uses port 7860 by default
 ENV PORT=7860
