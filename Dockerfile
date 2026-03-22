@@ -11,7 +11,6 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 # Copy backend code to the current directory (/app)
 COPY --chown=user api/*.py .
-COPY --chown=user api/.env .
 COPY --chown=user api/models/ ./models/
 
 # Hugging Face Spaces uses port 7860 by default
