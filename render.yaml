@@ -2,8 +2,9 @@ services:
   - type: web
     name: pamoja-backend
     env: python
+    pythonVersion: "3.11.4"
     rootDir: api
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip setuptools wheel && pip install -r requirements.txt
     startCommand: uvicorn index:app --host 0.0.0.0 --port 10000
     plan: free
     envVars:
@@ -11,9 +12,6 @@ services:
         fromDatabase:
           name: pamoja-db
           property: connectionString
-      # Note: For security, we leave sync: false for these secrets.
-      # You will need to explicitly paste the values for these keys in the 
-      # Render Dashboard under your web service's Environment section.
       - key: DEMO_API_KEY
         sync: false
       - key: LIVE_API_KEY
