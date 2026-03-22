@@ -24,8 +24,13 @@ logger = logging.getLogger("pamoja-ai")
 # Load environment variables
 load_dotenv()
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Create database tables (Fail-safe for Vercel startup)
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables verified/created.")
+except Exception as e:
+    logger.error(f"Database connection failed at startup: {e}")
+    # We continue so the health check can still return a status even if DB is down
 
 app = FastAPI(title="PAMOJA AI API", version="0.4.0",
               description="Alternative credit scoring for Zimbabwean SMEs")
