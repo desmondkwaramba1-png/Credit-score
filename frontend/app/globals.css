@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sora:   'Sora', system-ui, sans-serif;
+  --font-libre:  'Libre Baskerville', Georgia, serif;
+  --font-mono:   'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sora);
+  background: #0c1420;
+  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Score gauge */
+.gauge-track { stroke: rgba(255,255,255,0.08); }
+.gauge-fill  { transition: stroke-dashoffset 1s cubic-bezier(.4,0,.2,1); }
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(16px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+@keyframes pulse-dot {
+  0%,100% { opacity:1; }
+  50%      { opacity:.3; }
+}
+.fade-up  { animation: fadeUp .5s ease both; }
+.fade-up-2{ animation: fadeUp .5s .1s ease both; }
+.fade-up-3{ animation: fadeUp .5s .2s ease both; }
+.pulse-dot{ animation: pulse-dot 2s infinite; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 99px; }
+
+/* Score band colors */
+.band-excellent { color: #22c55e; }
+.band-very_good { color: #84cc16; }
+.band-good      { color: #eab308; }
+.band-fair      { color: #f97316; }
+.band-poor      { color: #ef4444; }
+
+.bg-band-excellent { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.25); }
+.bg-band-very_good { background: rgba(132,204,22,.12); border-color: rgba(132,204,22,.25); }
+.bg-band-good      { background: rgba(234,179,8,.12); border-color: rgba(234,179,8,.25); }
+.bg-band-fair      { background: rgba(249,115,22,.12); border-color: rgba(249,115,22,.25); }
+.bg-band-poor      { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.25); }
