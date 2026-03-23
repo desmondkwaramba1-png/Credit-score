@@ -1,5 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Base configuration
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://pamoja-backend-egyp.onrender.com/:path*',
+      },
+    ]
+  },
 }
 module.exports = nextConfig
