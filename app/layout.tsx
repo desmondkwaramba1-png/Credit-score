@@ -1,3 +1,4 @@
+'use client'
 import React, { useState, useEffect, useMemo } from 'react'
 import './globals.css'
 import Link from 'next/link'
