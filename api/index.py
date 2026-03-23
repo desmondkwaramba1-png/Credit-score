@@ -164,6 +164,16 @@ class Token(BaseModel):
     full_name: str
 
 
+# ── HEALTH CHECK ───────────────────────────────────────────────
+@app.get("/")
+def root():
+    return {"status": "ok", "service": "PAMOJA AI API", "version": "0.4.0"}
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 # ── AUTH ENDPOINTS ─────────────────────────────────────────────
 @app.post("/auth/register", response_model=Token)
 def register(user_data: UserRegister, db: Session = Depends(get_db)):
