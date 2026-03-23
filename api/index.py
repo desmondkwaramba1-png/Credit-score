@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List
+from fastapi.responses import JSONResponse
 import secrets
 from score_engine import PamojaScoreEngine
 from database import engine, Base, get_db
@@ -41,6 +42,16 @@ app = FastAPI(title="PAMOJA AI API", version="0.4.0",
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"],
                    allow_methods=["*"], allow_headers=["*"])
+
+# Global Exception Handler for debugging
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    logger.error(f"Global error: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "type": type(exc).__name__}
+    )
+
 
 # Load engine once at startup
 # Robust path detection for Local, Vercel, and Docker/HuggingFace
@@ -172,6 +183,27 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+@app.get("/db-test")
+def db_test(db: Session = Depends(get_db)):
+    try:
+        # Test query
+        from sqlalchemy import text
+        db.execute(text("SELECT 1"))
+        
+        # Check if tables exist
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        
+        return {
+            "status": "connected",
+            "database": str(engine.url).split("@")[-1] if "@" in str(engine.url) else "sqlite",
+            "tables": tables,
+            "models_present": ["users" in tables, "scores" in tables]
+        }
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
 
 
 # ── AUTH ENDPOINTS ─────────────────────────────────────────────

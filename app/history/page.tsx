@@ -2,6 +2,9 @@
 import { useState, useEffect } from 'react'
 import { ScoreCard } from '../../components/ScoreCard'
 import { BarChart3, TrendingUp, AlertCircle } from 'lucide-react'
+import { useAuth } from '../../components/AuthProvider'
+import { useRouter } from 'next/navigation'
+import axios from 'axios'
 
 // Simple in-browser history using localStorage
 interface HistoryItem {

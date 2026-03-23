@@ -46,7 +46,7 @@ function Endpoint({ method, path, desc, children }: {
 const PY_SCORE = `import requests
 
 # Score a borrower using behavioral signals
-result = requests.post("http://localhost:8000/score",
+result = requests.post("https://pamoja-backend-egyp.onrender.com/score",
     headers={"X-API-Key": "pk_demo_zw_pamoja2026"},
     json={
         "phone": "+263771234567",
@@ -76,7 +76,7 @@ print(result["result"]["band"])    # Excellent
 print(result["result"]["default_probability"])  # 0.071`
 
 const JS_SCORE = `// Score a borrower — JavaScript / Node.js
-const response = await fetch("http://localhost:8000/score", {
+const response = await fetch("https://pamoja-backend-egyp.onrender.com/score", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -104,7 +104,7 @@ const { result } = await response.json()
 console.log(result.score)  // 811`
 
 const PY_LOAN = `# Score a specific loan application (lender mode)
-result = requests.post("http://localhost:8000/score/loan",
+result = requests.post("https://pamoja-backend-egyp.onrender.com/score/loan",
     headers={"X-API-Key": "pk_demo_zw_pamoja2026"},
     json={
         "phone": "+263771234567",
@@ -154,8 +154,8 @@ export default function DeveloperPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 fade-up-2">
         <div className="bg-navy-2 border border-white/[0.06] rounded-xl p-4">
           <div className="text-xs text-slate-500 mb-1 font-semibold uppercase tracking-wider">Base URL</div>
-          <div className="font-mono text-sm text-brand">http://localhost:8000</div>
-          <div className="text-xs text-slate-600 mt-1">Production: https://api.pamoja.ai</div>
+          <div className="font-mono text-sm text-brand">https://pamoja-backend-egyp.onrender.com</div>
+          <div className="text-xs text-slate-600 mt-1">Staging: http://localhost:8000</div>
         </div>
         <div className="bg-navy-2 border border-white/[0.06] rounded-xl p-4">
           <div className="text-xs text-slate-500 mb-1 font-semibold uppercase tracking-wider">Authentication</div>
@@ -195,7 +195,7 @@ export default function DeveloperPage() {
 
         <Endpoint method="GET" path="/health" desc="API health check">
           <div className="mt-4">
-            <CodeBlock lang="curl" code={`curl http://localhost:8000/health \\
+            <CodeBlock lang="curl" code={`curl https://pamoja-backend-egyp.onrender.com/health \\
   -H "X-API-Key: pk_demo_zw_pamoja2026"`} />
           </div>
         </Endpoint>
@@ -227,7 +227,7 @@ export default function DeveloperPage() {
               Same as /score but accepts an array of borrowers. Used by MFIs to score their entire loan book.
             </p>
             <CodeBlock lang="python" code={`# Batch score multiple borrowers
-result = requests.post("http://localhost:8000/score/batch",
+result = requests.post("https://pamoja-backend-egyp.onrender.com/score/batch",
     headers={"X-API-Key": "pk_demo_zw_pamoja2026"},
     json={"borrowers": [
         {"phone": "+263771234567", "data": {...}},
