@@ -1,110 +1,81 @@
-# PAMOJA AI — Full Stack App
+🤖 PAMOJA AI — Alternative Credit Scoring for Zimbabwean SMEs
 
-Alternative credit scoring for Zimbabwean SMEs.
-Model AUC: **0.9459** · Trained on 55,305 real African loan outcomes.
+Full-Stack AI Credit Scoring Platform
 
----
+Model AUC: 0.9459
+Trained on 55,305 real African loan outcomes
+Designed to provide fair, data-driven credit scores for African small businesses
+📌 Problem
 
-## Project structure
+Many SMEs in Zimbabwe and Africa struggle to access credit because traditional banks rely on limited financial history.
+This leaves deserving businesses without funding.
 
-```
+💡 Solution
+
+PAMOJA AI predicts creditworthiness using alternative behavioral and financial data, giving lenders a reliable, inclusive, and fast scoring system.
+
+Features:
+
+Individual borrower scoring
+Batch scoring for multiple applicants
+Customer-facing score checker
+API integration for fintech platforms
+🛠 Tech Stack
+Backend: FastAPI, Python
+Machine Learning: Scikit-learn, Pandas
+Frontend: Next.js, React, TypeScript
+Database: MongoDB / SQLite
+Deployment: Render / Vercel
+🚀 Project Structure
 pamoja-app/
 ├── backend/
-│   ├── main.py              ← FastAPI server
-│   ├── score_engine.py      ← ML scoring engine
+│   ├── main.py           ← FastAPI server
+│   ├── score_engine.py   ← ML scoring engine
 │   ├── requirements.txt
-│   └── models/              ← trained .pkl files (copy from pamoja_credit/models/)
-│
+│   └── models/           ← trained .pkl files
 └── frontend/
     ├── app/
-    │   ├── page.tsx         ← Dashboard
-    │   ├── lender/          ← Score a borrower
-    │   ├── customer/        ← Customer score checker
-    │   ├── batch/           ← Batch CSV scoring
-    │   └── developer/       ← API docs + live tester
+    │   ├── page.tsx      ← Dashboard
+    │   ├── lender/       ← Score a borrower
+    │   ├── customer/     ← Customer score checker
+    │   ├── batch/        ← Batch CSV scoring
+    │   └── developer/    ← API docs + live tester
     ├── components/
-    │   └── ScoreCard.tsx    ← Reusable score display
+    │   └── ScoreCard.tsx ← Reusable score display
     └── package.json
-```
-
----
-
-## Setup (5 minutes)
-
-### Step 1 — Copy your trained models
-
-Copy your model files into `backend/models/`:
-```bash
+⚡ Setup (5 minutes)
+Step 1 — Copy trained models
 cp -r ../pamoja_credit/models/* backend/models/
 cp ../pamoja_credit/score_engine.py backend/score_engine.py
-```
-
-### Step 2 — Start the backend
-
-```bash
+Step 2 — Start Backend
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
-```
-
-API runs at: http://localhost:8000
-Auto-docs:  http://localhost:8000/docs
-
-### Step 3 — Start the frontend
-
-```bash
+API: http://localhost:8000
+Auto-docs: http://localhost:8000/docs
+Step 3 — Start Frontend
 cd frontend
 npm install
 npm run dev
-```
+App: http://localhost:3000
+📄 Pages Overview
+Page	URL	Description
+Dashboard	/	Stats, sample scores, quick links
+Score Borrower	/lender	Form to score any borrower
+My Score	/customer	USSD-style customer score checker
+Batch Scoring	/batch	Upload CSV, score 100 borrowers at once
+API Docs	/developer	Endpoints, code examples, live tester
+📝 API Endpoints
+Method	Endpoint	Description
+GET	/health	Health check
+POST	/score	Score from behavioral signals
+POST	/score/loan	Score a specific loan
+POST	/score/batch	Batch score up to 100 borrowers
 
-App runs at: http://localhost:3000
+Demo API key: pk_demo_zw_pamoja2026
 
----
-
-## Pages
-
-| Page | URL | Description |
-|------|-----|-------------|
-| Dashboard | `/` | Stats, sample scores, quick links |
-| Score Borrower | `/lender` | Form to score any borrower |
-| My Score | `/customer` | USSD-style customer score checker |
-| Batch Scoring | `/batch` | Upload CSV, score 100 at once |
-| API Docs | `/developer` | Endpoints, code examples, live tester |
-
----
-
-## API endpoints
-
-```
-GET  /health          — health check
-POST /score           — score from behavioral signals
-POST /score/loan      — score a specific loan application
-POST /score/batch     — batch score up to 100 borrowers
-```
-
-Demo API key: `pk_demo_zw_pamoja2026`
-
----
-
-## Deploy to production
-
-### One-Click Deploy (Render)
-1. Push this repo to GitHub.
-2. Log in to [Render](https://render.com).
-3. Click **Blueprint** -> **New Blueprint**.
-4. Select this repository.
-5. Render will automatically provision the **PostgreSQL database**, **FastAPI Backend**, and **Next.js Frontend**.
-
-### Manual Setup
-If you prefer manual setup:
-1. **Backend**: Create a "Web Service" on Render. Root: `backend`. Build: `pip install -r requirements.txt`. Start: `uvicorn main:app --host 0.0.0.0`.
-2. **Database**: Create a "PostgreSQL" instance on Render. Copy the Internal Database URL to the backend's `DATABASE_URL` env var.
-3. **Frontend**: Create a "Web Service" on Vercel or Render. Root: `frontend`. Set `NEXT_PUBLIC_API_URL` to your backend URL.
-
----
-
-## Contact
-
-Desmond Kwaramba · Founder, PAMOJA AI
-desmondkwaramba1@gmail.com · Harare, Zimbabwe · Founded 2026
+🌍 Impact
+Provides financial inclusion for African SMEs
+Uses real African data for fair credit scoring
+Integratable into fintech platforms
+Demonstrates full-stack AI + web development skills
