@@ -1,32 +1,38 @@
 🤖 PAMOJA AI — Alternative Credit Scoring for Zimbabwean SMEs
 
-Full-Stack AI Credit Scoring Platform
+
+
+
+
+
+
+
+Full-stack AI platform predicting creditworthiness for Zimbabwean SMEs.
 
 Model AUC: 0.9459
 Trained on 55,305 real African loan outcomes
-Designed to provide fair, data-driven credit scores for African small businesses
+Focused on financial inclusion and fair credit scoring
 📌 Problem
 
-Many SMEs in Zimbabwe and Africa struggle to access credit because traditional banks rely on limited financial history.
-This leaves deserving businesses without funding.
+Many SMEs in Zimbabwe lack access to credit because traditional banks rely on limited financial history. This leaves deserving businesses without funding.
 
 💡 Solution
 
-PAMOJA AI predicts creditworthiness using alternative behavioral and financial data, giving lenders a reliable, inclusive, and fast scoring system.
+PAMOJA AI predicts creditworthiness using alternative behavioral and financial data, giving lenders reliable and inclusive scoring.
 
-Features:
+Key Features:
 
 Individual borrower scoring
 Batch scoring for multiple applicants
 Customer-facing score checker
-API integration for fintech platforms
+API integration for fintechs
 🛠 Tech Stack
-Backend: FastAPI, Python
-Machine Learning: Scikit-learn, Pandas
+Backend: Python, FastAPI
 Frontend: Next.js, React, TypeScript
 Database: MongoDB / SQLite
+ML: Scikit-learn, Pandas
 Deployment: Render / Vercel
-🚀 Project Structure
+🗂 Project Structure
 pamoja-app/
 ├── backend/
 │   ├── main.py           ← FastAPI server
@@ -73,9 +79,3 @@ POST	/score/loan	Score a specific loan
 POST	/score/batch	Batch score up to 100 borrowers
 
 Demo API key: pk_demo_zw_pamoja2026
-
-🌍 Impact
-Provides financial inclusion for African SMEs
-Uses real African data for fair credit scoring
-Integratable into fintech platforms
-Demonstrates full-stack AI + web development skills
