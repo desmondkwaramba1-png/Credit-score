@@ -6,7 +6,8 @@
  * (passed as arguments) — never stored in this file.
  */
 
-export const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/v1';
+const rawBase = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+export const API_BASE = rawBase.endsWith('/v1') ? rawBase : `${rawBase.replace(/\/$/, '')}/v1`;
 
 // ── Low-level fetch wrapper ────────────────────────────────────────────────────
 async function apiFetch(path, { method = 'GET', token, apiKey, body, params } = {}) {

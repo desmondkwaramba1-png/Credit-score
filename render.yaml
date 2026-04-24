@@ -1,5 +1,4 @@
 databases:
-  # ── PostgreSQL Database ──────────────────────────────────────────────────────
   - name: credit-scoring-db
     databaseName: credit_scoring_db
     user: postgres
@@ -34,7 +33,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ORIGINS
-        value: "*" # Update with frontend URL after first deploy
+        value: "*"
       - key: MODEL_PATH
         value: app/ml/model.pkl
 
@@ -50,8 +49,7 @@ services:
         fromService:
           type: web
           name: credit-scoring-api
-          property: host
-        substitution: ${VITE_API_BASE}/v1
+          property: url
     routingRules:
       - route: /*
         rewritePath: /index.html
