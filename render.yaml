@@ -1,7 +1,7 @@
 databases:
   - name: credit-scoring-db
     databaseName: credit_scoring_db
-    user: postgres
+    user: pamoja_db_user
     plan: free
 
 services:
@@ -9,6 +9,7 @@ services:
   - type: keyvalue
     name: credit-scoring-redis
     plan: free
+    ipAllowList: [] # Only allow internal connections
 
   # ── FastAPI Backend ──────────────────────────────────────────────────────────
   - type: web
@@ -47,10 +48,8 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_BASE
-        fromService:
-          type: web
-          name: credit-scoring-api
-          property: url
+        # We use the predictable Render URL since 'property: url' is not supported in blueprints
+        value: https://credit-scoring-api.onrender.com
     routes:
       - type: rewrite
         source: /*
