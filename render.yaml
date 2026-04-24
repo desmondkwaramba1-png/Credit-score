@@ -1,6 +1,6 @@
 services:
   # ── PostgreSQL Database ──────────────────────────────────────────────────────
-  - type: database
+  - type: db
     name: credit-scoring-db
     databaseName: credit_scoring_db
     user: postgres
