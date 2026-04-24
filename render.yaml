@@ -1,15 +1,14 @@
-services:
+databases:
   # ── PostgreSQL Database ──────────────────────────────────────────────────────
-  - type: db
-    name: credit-scoring-db
+  - name: credit-scoring-db
     databaseName: credit_scoring_db
     user: postgres
     plan: free
 
+services:
   # ── Redis (Rate Limiting) ────────────────────────────────────────────────────
-  - type: redis
+  - type: keyvalue
     name: credit-scoring-redis
-    ipAllowList: [] # Only allow internal connections
     plan: free
 
   # ── FastAPI Backend ──────────────────────────────────────────────────────────
@@ -28,7 +27,8 @@ services:
           name: credit-scoring-db
           property: connectionString
       - key: REDIS_URL
-        fromRedis:
+        fromService:
+          type: keyvalue
           name: credit-scoring-redis
           property: connectionString
       - key: JWT_SECRET
