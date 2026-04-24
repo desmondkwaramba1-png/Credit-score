@@ -84,6 +84,14 @@ class Borrower(Base):
     transaction_frequency = Column(Integer, default=0)
     business_age         = Column(Integer, default=0)
 
+    # Profile / directory fields
+    category              = Column(String(100))   # e.g. 'Retail & Wholesale'
+    country               = Column(String(100))   # e.g. 'Ghana'
+    contact_email         = Column(String(255))
+    contact_phone         = Column(String(50))
+    annual_income         = Column(Numeric(15, 2))
+    total_loan_amount     = Column(Numeric(15, 2))
+
     created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
 

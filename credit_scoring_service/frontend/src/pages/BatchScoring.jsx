@@ -3,15 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   RiFileAddLine, RiUploadCloud2Line, RiPlayCircleLine, RiCheckLine,
   RiErrorWarningLine, RiInformationLine, RiLoader4Line, RiCloseLine,
-  RiArrowRightLine, RiSparklingLine
+  RiArrowRightLine, RiSparklingLine, RiPulseLine, RiDownloadLine
 } from 'react-icons/ri';
 import {
   Card, CardContent, CardHeader, CardTitle, CardDescription,
   Button, Badge, Skeleton, cn, staggerContainer, staggerItem
 } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
-
-const API_BASE = 'http://localhost:8001/v1';
+import { scoring } from '../api';
 
 export default function BatchScoring() {
   const { user } = useAuth();
@@ -53,23 +52,8 @@ export default function BatchScoring() {
     setLoading(true);
     setError(null);
     setResult(null);
-
     try {
-      const res = await fetch(`${API_BASE}/score?mode=test`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.access_token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || 'Scoring failed');
-      }
-
-      const data = await res.json();
+      const data = await scoring.score(formData, { token: user?.access_token, mode: 'test' });
       setResult(data);
     } catch (err) {
       setError(err.message);
@@ -93,46 +77,23 @@ export default function BatchScoring() {
     setLoading(true);
     setError(null);
     setBatchResults(null);
-
     try {
-      // For this demo, we read the CSV and convert to JSON objects
-      // Real production might handle multipart, but our API takes a JSON List
       const text = await selectedFile.text();
       const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length < 2) throw new Error('CSV must have a header row and at least one data row.');
       const headers = lines[0].split(',').map(h => h.trim());
-      
+      const numericFields = ['person_age', 'person_income', 'person_emp_length', 'loan_amnt', 'loan_int_rate', 'loan_percent_income', 'cb_person_cred_hist_length'];
       const payload = lines.slice(1).map(line => {
         const values = line.split(',');
         const obj = {};
         headers.forEach((header, index) => {
           const val = values[index]?.trim();
-          // Type casting based on schema
-          if (['person_age', 'person_income', 'person_emp_length', 'loan_amnt', 'loan_int_rate', 'loan_percent_income', 'cb_person_cred_hist_length'].includes(header)) {
-            obj[header] = parseFloat(val) || 0;
-          } else {
-            obj[header] = val;
-          }
+          obj[header] = numericFields.includes(header) ? (parseFloat(val) || 0) : val;
         });
         return obj;
       }).filter(obj => Object.keys(obj).length === headers.length);
-
-      if (payload.length === 0) throw new Error('No valid data found in CSV');
-
-      const res = await fetch(`${API_BASE}/score/batch?mode=test`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.access_token}`
-        },
-        body: JSON.stringify(payload.slice(0, 100)) // Cap at 100 as per API
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || 'Batch scoring failed');
-      }
-
-      const data = await res.json();
+      if (payload.length === 0) throw new Error('No valid rows found in CSV.');
+      const data = await scoring.scoreBatch(payload.slice(0, 100), { token: user?.access_token, mode: 'test' });
       setBatchResults(data);
     } catch (err) {
       setError(err.message);
@@ -401,10 +362,16 @@ export default function BatchScoring() {
                   </div>
 
                   <Button className="w-full mt-4" onClick={() => {
-                    // In a real app, this would trigger a CSV download of the results
-                    alert('Full results CSV would be downloaded here in production.');
+                    const rows = batchResults.results?.map((r, i) =>
+                      `${i+1},${r.credit_score},${r.risk_level},${(r.probability_of_default*100).toFixed(2)}%`
+                    ) || [];
+                    const csv = ['Index,Score,Risk Level,Default Probability', ...rows].join('\n');
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = 'batch_results.csv';
+                    a.click(); URL.revokeObjectURL(url);
                   }}>
-                    <RiDownloadLine /> Export Results
+                    <RiDownloadLine /> Export Results CSV
                   </Button>
                 </CardContent>
               </Card>

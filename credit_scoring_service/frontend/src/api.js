@@ -108,6 +108,12 @@ export const dashboard = {
 // ── Borrowers ──────────────────────────────────────────────────────────────────
 export const borrowers = {
   list: (token) => apiFetch('/borrowers', { token }),
+  create: (payload, token) =>
+    apiFetch('/borrowers', { method: 'POST', token, body: payload }),
+  getById: (id, token) =>
+    apiFetch(`/borrowers/${id}`, { token }),
+  getScores: (id, token) =>
+    apiFetch(`/borrowers/${id}/scores`, { token }),
   profile: (email, token) =>
     apiFetch(`/borrower/me?email=${encodeURIComponent(email)}`, { token }),
 };

@@ -121,24 +121,143 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
     }
 
 
+from pydantic import BaseModel
+from typing import Optional
+
+class BorrowerCreate(BaseModel):
+    business_name: str
+    category: Optional[str] = None
+    country: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    annual_income: Optional[float] = None
+    total_loan_amount: Optional[float] = None
+
+
 @router.get("/borrowers", response_model=List[BorrowerSummary])
-def list_borrowers(db: Session = Depends(get_db)):
+def list_borrowers(
+    db: Session = Depends(get_db),
+    credentials: Optional[str] = None,
+):
     """Retrieve all borrowers with their latest health scores."""
     from app.database.models import Borrower, CreditScore
-    
-    results = db.query(Borrower).all()
+
+    results = db.query(Borrower).order_by(Borrower.created_at.desc()).all()
     output = []
     for b in results:
-        latest_score = db.query(CreditScore).filter(CreditScore.borrower_id == b.borrower_id).order_by(CreditScore.scored_at.desc()).first()
+        latest = (
+            db.query(CreditScore)
+            .filter(CreditScore.borrower_id == b.borrower_id)
+            .order_by(CreditScore.scored_at.desc())
+            .first()
+        )
         output.append({
-            "borrower_id": str(b.borrower_id),
-            "business_name": b.business_name,
-            "loan_amnt": float(b.loan_amnt or 0),
-            "risk_level": latest_score.risk_level if latest_score else "LOW",
-            "credit_score": latest_score.credit_score if latest_score else 700,
-            "last_scored_at": latest_score.scored_at if latest_score else b.created_at
+            "borrower_id":       str(b.borrower_id),
+            "business_name":     b.business_name,
+            "category":          b.category,
+            "country":           b.country,
+            "contact_email":     b.contact_email,
+            "contact_phone":     b.contact_phone,
+            "total_loan_amount": float(b.total_loan_amount or b.loan_amnt or 0),
+            "annual_income":     float(b.annual_income or b.person_income or 0),
+            "risk_level":        latest.risk_level if latest else None,
+            "credit_score":      latest.credit_score if latest else None,
+            "probability_of_default": latest.probability_of_default if latest else None,
+            "last_scored_at":    latest.scored_at if latest else b.created_at,
         })
     return output
+
+
+@router.post("/borrowers", status_code=201)
+def create_borrower(
+    payload: BorrowerCreate,
+    db: Session = Depends(get_db),
+):
+    """Register a new SME borrower in the lender's portfolio."""
+    from app.database.models import Borrower
+    b = Borrower(
+        business_name=payload.business_name,
+        category=payload.category,
+        country=payload.country,
+        contact_email=payload.contact_email,
+        contact_phone=payload.contact_phone,
+        annual_income=payload.annual_income,
+        total_loan_amount=payload.total_loan_amount,
+        loan_amnt=payload.total_loan_amount,         # keep legacy field in sync
+        person_income=payload.annual_income,
+    )
+    db.add(b)
+    db.commit()
+    db.refresh(b)
+    return {
+        "borrower_id":   str(b.borrower_id),
+        "business_name": b.business_name,
+        "created_at":    b.created_at.isoformat(),
+    }
+
+
+@router.get("/borrowers/{borrower_id}")
+def get_borrower(
+    borrower_id: str,
+    db: Session = Depends(get_db),
+):
+    """Retrieve a single borrower with their latest score."""
+    from app.database.models import Borrower, CreditScore
+    b = db.query(Borrower).filter(Borrower.borrower_id == borrower_id).first()
+    if not b:
+        raise HTTPException(status_code=404, detail="Borrower not found")
+    latest = (
+        db.query(CreditScore)
+        .filter(CreditScore.borrower_id == b.borrower_id)
+        .order_by(CreditScore.scored_at.desc())
+        .first()
+    )
+    return {
+        "borrower_id":           str(b.borrower_id),
+        "business_name":         b.business_name,
+        "category":              b.category,
+        "country":               b.country,
+        "contact_email":         b.contact_email,
+        "contact_phone":         b.contact_phone,
+        "total_loan_amount":     float(b.total_loan_amount or b.loan_amnt or 0),
+        "annual_income":         float(b.annual_income or b.person_income or 0),
+        "risk_level":            latest.risk_level if latest else None,
+        "credit_score":          latest.credit_score if latest else None,
+        "probability_of_default": latest.probability_of_default if latest else None,
+        "created_at":            b.created_at.isoformat(),
+    }
+
+
+@router.get("/borrowers/{borrower_id}/scores")
+def get_borrower_scores(
+    borrower_id: str,
+    db: Session = Depends(get_db),
+):
+    """Retrieve all credit score history for a borrower."""
+    from app.database.models import Borrower, CreditScore
+    b = db.query(Borrower).filter(Borrower.borrower_id == borrower_id).first()
+    if not b:
+        raise HTTPException(status_code=404, detail="Borrower not found")
+    scores = (
+        db.query(CreditScore)
+        .filter(CreditScore.borrower_id == borrower_id)
+        .order_by(CreditScore.scored_at.desc())
+        .limit(50)
+        .all()
+    )
+    return [
+        {
+            "score_id":               str(s.score_id),
+            "credit_score":           s.credit_score,
+            "probability_of_default": s.probability_of_default,
+            "risk_level":             s.risk_level,
+            "model_version":          s.model_version,
+            "scored_at":              s.scored_at.isoformat() if s.scored_at else None,
+            "mode":                   "live",
+        }
+        for s in scores
+    ]
+
 
 
 @router.get("/borrower/me", response_model=SMEProfileResponse)
