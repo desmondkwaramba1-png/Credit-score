@@ -44,7 +44,7 @@ services:
     name: credit-scoring-frontend
     runtime: static
     rootDir: credit_scoring_service/frontend
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --legacy-peer-deps && npm run build
     staticPublishPath: dist
     envVars:
       - key: VITE_API_BASE
