@@ -14,8 +14,9 @@ services:
   - type: web
     name: credit-scoring-api
     runtime: docker
-    dockerContext: credit_scoring_service
-    dockerfilePath: credit_scoring_service/Dockerfile
+    rootDir: credit_scoring_service
+    dockerContext: .
+    dockerfilePath: Dockerfile
     plan: free
     healthCheckPath: /v1/health
     envVars:
@@ -41,7 +42,7 @@ services:
   - type: web
     name: credit-scoring-frontend
     runtime: static
-    rootDirectory: credit_scoring_service/frontend
+    rootDir: credit_scoring_service/frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
@@ -50,6 +51,7 @@ services:
           type: web
           name: credit-scoring-api
           property: url
-    routingRules:
-      - route: /*
-        rewritePath: /index.html
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
