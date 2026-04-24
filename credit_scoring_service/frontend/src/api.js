@@ -6,7 +6,7 @@
  * (passed as arguments) — never stored in this file.
  */
 
-export const API_BASE = 'http://localhost:8001/v1';
+export const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/v1';
 
 // ── Low-level fetch wrapper ────────────────────────────────────────────────────
 async function apiFetch(path, { method = 'GET', token, apiKey, body, params } = {}) {

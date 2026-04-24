@@ -153,3 +153,21 @@ Evaluates an SME borrower and returns their credit score, along with AI explanat
 - **Audit Logging**: Every request payload, response payload, and IP is stored immutably in the PostgreSQL `audit_logs` table.
 - **Explainability**: Black-box predictions are supplemented with top-5 SHAP feature drivers so lenders can justify decisions to regulatory bodies.
 - **Role-Based Views**: Dashboards query Postgres to verify the signed-in user's `user_type` before displaying sensitive data.
+
+## 🚀 Deployment to Render
+
+This repository is optimized for deployment on [Render](https://render.com) using the included `render.yaml` blueprint.
+
+### Steps to Deploy:
+1. **Connect to Render**: Log in to your Render dashboard and click **"New"** -> **"Blueprint"**.
+2. **Connect GitHub**: Connect your GitHub repository (`Credit-score`).
+3. **Approve Blueprint**: Render will automatically detect the `render.yaml` file and show the services to be created (DB, Redis, API, and Frontend).
+4. **Deploy**: Click **"Apply"**.
+5. **Update CORS (Optional)**: Once the frontend is deployed, you should update the `CORS_ORIGINS` environment variable in the `credit-scoring-api` service settings to match your frontend URL (e.g., `https://credit-scoring-frontend.onrender.com`) for better security.
+
+### Environment Variables
+The blueprint handles most configuration, but you can override these in the Render dashboard:
+- `JWT_SECRET`: Automatically generated, but can be customized.
+- `CORS_ORIGINS`: Set to `*` by default for the first deploy.
+- `DATABASE_URL`: Linked automatically to the managed PostgreSQL.
+- `REDIS_URL`: Linked automatically to the managed Redis.

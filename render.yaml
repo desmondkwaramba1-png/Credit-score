@@ -1,21 +1,57 @@
 services:
-  - type: web
-    name: pamoja-backend
-    env: docker
-    dockerfilePath: ./Dockerfile
+  # ── PostgreSQL Database ──────────────────────────────────────────────────────
+  - type: database
+    name: credit-scoring-db
+    databaseName: credit_scoring_db
+    user: postgres
     plan: free
+
+  # ── Redis (Rate Limiting) ────────────────────────────────────────────────────
+  - type: redis
+    name: credit-scoring-redis
+    ipAllowList: [] # Only allow internal connections
+    plan: free
+
+  # ── FastAPI Backend ──────────────────────────────────────────────────────────
+  - type: web
+    name: credit-scoring-api
+    runtime: docker
+    dockerContext: credit_scoring_service
+    dockerfilePath: credit_scoring_service/Dockerfile
+    plan: free
+    healthCheckPath: /v1/health
     envVars:
+      - key: APP_ENV
+        value: production
       - key: DATABASE_URL
         fromDatabase:
-          name: pamoja-db
+          name: credit-scoring-db
           property: connectionString
-      - key: DEMO_API_KEY
-        sync: false
-      - key: LIVE_API_KEY
-        sync: false
+      - key: REDIS_URL
+        fromRedis:
+          name: credit-scoring-redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: "*" # Update with frontend URL after first deploy
+      - key: MODEL_PATH
+        value: app/ml/model.pkl
 
-databases:
-  - name: pamoja-db
-    databaseName: pamoja
-    user: pamoja
-    plan: free
+  # ── React Frontend ───────────────────────────────────────────────────────────
+  - type: web
+    name: credit-scoring-frontend
+    runtime: static
+    rootDirectory: credit_scoring_service/frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE
+        fromService:
+          type: web
+          name: credit-scoring-api
+          property: host
+        substitution: ${VITE_API_BASE}/v1
+    routingRules:
+      - route: /*
+        rewritePath: /index.html
