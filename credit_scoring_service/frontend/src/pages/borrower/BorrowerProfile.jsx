@@ -3,45 +3,98 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   RiArrowLeftLine, RiBuilding4Line, RiCalendarEventLine, RiShieldCheckLine,
-  RiInformationLine, RiArrowRightUpLine, RiArrowRightDownLine,
-  RiMoneyDollarCircleLine, RiPieChartLine, RiHistoryLine,
-  RiPulseLine, RiArrowRightLine, RiSparklingLine, RiDownloadLine
+  RiMoneyDollarCircleLine, RiPulseLine, RiArrowRightLine, RiSparklingLine,
+  RiLoader4Line, RiErrorWarningLine, RiUser3Line
 } from 'react-icons/ri';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge, Button, ScoreGauge, Skeleton, cn, staggerContainer, staggerItem } from '../../components/ui';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, ScoreGauge, Skeleton, cn, staggerContainer, staggerItem } from '../../components/ui';
+import { useAuth } from '../../context/AuthContext';
 
-const CHART_TOOLTIP = {
-  backgroundColor: '#fff', border: '1px solid #E3E8F0',
-  borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-  color: '#1A2035', fontSize: '0.8rem',
+const API_BASE = 'http://localhost:8001/v1';
+
+const RISK_STYLE = {
+  LOW:    { bg: '#E6F9F2', color: '#00806D', border: '#B3EDD9' },
+  MEDIUM: { bg: '#FEF3C7', color: '#B45309', border: '#FDE68A' },
+  HIGH:   { bg: '#FEF2F2', color: '#B91C1C', border: '#FECACA' },
 };
-
-const MOCK_FINANCIAL = [
-  { month: 'Jul', revenue: 15000, expenses: 11000 },
-  { month: 'Aug', revenue: 18000, expenses: 12500 },
-  { month: 'Sep', revenue: 14000, expenses: 13000 },
-  { month: 'Oct', revenue: 22000, expenses: 15000 },
-  { month: 'Nov', revenue: 25000, expenses: 16000 },
-  { month: 'Dec', revenue: 28000, expenses: 17500 },
-];
-
-const SHAP_FEATURES = [
-  { label: 'Annual Income',           impact:  0.124, positive: true },
-  { label: 'Credit History Length',   impact:  0.089, positive: true },
-  { label: 'Debt-to-Income Ratio',    impact: -0.045, positive: false },
-  { label: 'Transaction Frequency',   impact:  0.067, positive: true },
-  { label: 'Business Age',            impact: -0.012, positive: false },
-];
 
 export default function BorrowerProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [borrower, setBorrower] = useState(null);
+  const [scoreHistory, setScoreHistory] = useState([]);
+  const [error, setError] = useState(null);
+  const [scoring, setScoring] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(t);
-  }, [id]);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/borrowers/${id}`, {
+          headers: { 'Authorization': `Bearer ${user?.access_token}` }
+        });
+        if (!res.ok) throw new Error('Borrower not found');
+        const data = await res.json();
+        setBorrower(data);
+
+        // Fetch score history for this borrower
+        const histRes = await fetch(`${API_BASE}/borrowers/${id}/scores`, {
+          headers: { 'Authorization': `Bearer ${user?.access_token}` }
+        });
+        if (histRes.ok) {
+          const histData = await histRes.json();
+          setScoreHistory(Array.isArray(histData) ? histData : []);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user && id) fetchData();
+  }, [user, id]);
+
+  const handleRescore = async () => {
+    if (!borrower) return;
+    setScoring(true);
+    try {
+      // Use stored financial data to trigger a new score
+      const res = await fetch(`${API_BASE}/score?mode=live`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.access_token}`
+        },
+        body: JSON.stringify(borrower.last_payload || {
+          person_age: 35,
+          person_income: borrower.annual_income || 50000,
+          person_home_ownership: 'RENT',
+          person_emp_length: 5,
+          loan_intent: 'VENTURE',
+          loan_grade: 'B',
+          loan_amnt: borrower.total_loan_amount || 20000,
+          loan_int_rate: 12.5,
+          loan_percent_income: 0.25,
+          cb_person_default_on_file: 'N',
+          cb_person_cred_hist_length: 4
+        })
+      });
+      if (res.ok) {
+        const newScore = await res.json();
+        // Refresh borrower to pick up new score
+        const refreshRes = await fetch(`${API_BASE}/borrowers/${id}`, {
+          headers: { 'Authorization': `Bearer ${user?.access_token}` }
+        });
+        if (refreshRes.ok) setBorrower(await refreshRes.json());
+        alert(`New score generated: ${newScore.credit_score} (${newScore.risk_level} Risk)`);
+      }
+    } catch (e) {
+      alert('Rescoring failed: ' + e.message);
+    } finally {
+      setScoring(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -52,11 +105,27 @@ export default function BorrowerProfile() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <Skeleton className="h-80 rounded-xl" />
-          <div className="lg:col-span-2 grid grid-cols-2 gap-4">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}</div>
+          <div className="lg:col-span-2 grid grid-cols-2 gap-4">
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}
+          </div>
         </div>
       </div>
     );
   }
+
+  if (error || !borrower) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <RiErrorWarningLine className="text-5xl text-[#EF4444] mb-4" />
+        <h2 className="text-xl font-black text-[#1A2035] mb-2">Borrower Not Found</h2>
+        <p className="text-sm text-[#6B7A99] mb-6">{error || 'This borrower record does not exist or you lack access.'}</p>
+        <Button onClick={() => navigate('/borrowers')}><RiArrowLeftLine /> Back to Explorer</Button>
+      </div>
+    );
+  }
+
+  const riskStyle = RISK_STYLE[borrower.risk_level?.toUpperCase()] || RISK_STYLE.MEDIUM;
+  const latestScore = borrower.credit_score || 0;
 
   return (
     <motion.div className="space-y-6" variants={staggerContainer} initial="hidden" animate="show">
@@ -68,19 +137,24 @@ export default function BorrowerProfile() {
           </Button>
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <h1 className="text-2xl font-black font-heading text-[#1A2035]">Mensah Trading Co.</h1>
+              <h1 className="text-2xl font-black font-heading text-[#1A2035]">{borrower.business_name}</h1>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#E6F7FB] text-[#007FA3] border border-[#B3E5F0]">
-                ID: SME-92841
+                ID: {(borrower.borrower_id || id).slice(0, 8).toUpperCase()}
               </span>
             </div>
             <p className="text-sm text-[#6B7A99] flex items-center gap-1.5">
-              <RiBuilding4Line /> Retail & Wholesale · Accra, Ghana
+              <RiBuilding4Line /> {borrower.category || 'Business'} · {borrower.country || 'Africa'}
             </p>
           </div>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline"><RiDownloadLine /> Download Dossier</Button>
-          <Button><RiSparklingLine /> Recalculate Score</Button>
+          <Button
+            onClick={handleRescore}
+            disabled={scoring}
+          >
+            {scoring ? <RiLoader4Line className="animate-spin" /> : <RiSparklingLine />}
+            {scoring ? 'Scoring…' : 'Recalculate Score'}
+          </Button>
         </div>
       </motion.div>
 
@@ -90,20 +164,57 @@ export default function BorrowerProfile() {
         <motion.div variants={staggerItem}>
           <Card className="flex flex-col items-center p-8 text-center" style={{ borderTop: '3px solid #00A8CB' }}>
             <p className="text-xs font-bold text-[#6B7A99] uppercase tracking-widest mb-4">Credit Score</p>
-            <ScoreGauge score={720} size={180} />
-            <div className="mt-5 w-full p-3 rounded-xl bg-[#F5F7FA] border border-[#E3E8F0] text-sm text-[#6B7A99] text-left">
-              <span className="font-bold text-[#1A2035]">Top 15%</span> of retail SMEs in this region.
+            <ScoreGauge score={latestScore} size={180} />
+            <div className="mt-4 w-full">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
+                style={{ background: riskStyle.bg, color: riskStyle.color, border: `1px solid ${riskStyle.border}` }}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: riskStyle.color }} />
+                {borrower.risk_level || 'MEDIUM'} Risk
+              </span>
             </div>
+            {scoreHistory.length > 0 && (
+              <p className="text-[11px] text-[#6B7A99] mt-3">
+                {scoreHistory.length} score{scoreHistory.length !== 1 ? 's' : ''} on record
+              </p>
+            )}
           </Card>
         </motion.div>
 
         {/* KPI Cards */}
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
-            { label: 'Probability of Default', value: '12.4%',   icon: RiShieldCheckLine,       pos: true,  desc: 'Down 2.1% this quarter',    iconBg: '#E6F9F2', iconColor: '#00806D' },
-            { label: 'Monthly Revenue',         value: '$28,400', icon: RiMoneyDollarCircleLine, pos: true,  desc: 'Highest in 12 months',      iconBg: '#E6F7FB', iconColor: '#007FA3' },
-            { label: 'Business Age',            value: '3.5 Yrs', icon: RiCalendarEventLine,     pos: null,  desc: 'Registration: Jan 2021',    iconBg: '#F0F3F8', iconColor: '#6B7A99' },
-            { label: 'Transaction Frequency',   value: '142/mo',  icon: RiPulseLine,             pos: true,  desc: '+12% transaction volume',   iconBg: '#E6F7FB', iconColor: '#00A8CB' },
+            {
+              label: 'Probability of Default',
+              value: borrower.probability_of_default != null
+                ? `${(borrower.probability_of_default * 100).toFixed(1)}%`
+                : '—',
+              icon: RiShieldCheckLine,
+              iconBg: '#E6F9F2', iconColor: '#00806D',
+              desc: 'Based on latest ML inference'
+            },
+            {
+              label: 'Total Loan Exposure',
+              value: borrower.total_loan_amount != null
+                ? `$${Number(borrower.total_loan_amount).toLocaleString()}`
+                : '—',
+              icon: RiMoneyDollarCircleLine,
+              iconBg: '#E6F7FB', iconColor: '#007FA3',
+              desc: 'Active loan portfolio'
+            },
+            {
+              label: 'Business Category',
+              value: borrower.category || 'N/A',
+              icon: RiBuilding4Line,
+              iconBg: '#F0F3F8', iconColor: '#6B7A99',
+              desc: borrower.country || 'Location not set'
+            },
+            {
+              label: 'Contact',
+              value: borrower.contact_phone || '—',
+              icon: RiUser3Line,
+              iconBg: '#E6F7FB', iconColor: '#00A8CB',
+              desc: borrower.contact_email || 'No email on file'
+            },
           ].map((s, i) => (
             <motion.div key={i} variants={staggerItem}>
               <Card className="hover:shadow-md transition-shadow h-full">
@@ -114,12 +225,8 @@ export default function BorrowerProfile() {
                       <s.icon style={{ color: s.iconColor, fontSize: '1.1rem' }} />
                     </div>
                   </div>
-                  <h4 className="text-2xl font-black font-heading text-[#1A2035]">{s.value}</h4>
-                  <div className={cn('flex items-center gap-1 mt-2 text-xs font-medium', s.pos === true ? 'text-[#00806D]' : s.pos === false ? 'text-[#B91C1C]' : 'text-[#6B7A99]')}>
-                    {s.pos === true && <RiArrowRightUpLine />}
-                    {s.pos === false && <RiArrowRightDownLine />}
-                    {s.desc}
-                  </div>
+                  <h4 className="text-2xl font-black font-heading text-[#1A2035] truncate">{s.value}</h4>
+                  <p className="text-xs text-[#6B7A99] mt-1">{s.desc}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -127,129 +234,82 @@ export default function BorrowerProfile() {
         </div>
       </div>
 
-      {/* SHAP + Cash Flow */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* SHAP Explainability */}
+      {/* Score History */}
+      {scoreHistory.length > 0 && (
         <motion.div variants={staggerItem}>
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>AI Decision Drivers</CardTitle>
-                  <CardDescription>SHAP values — feature contribution to the credit score</CardDescription>
-                </div>
-                <RiPieChartLine className="text-xl text-[#C8D3E6]" />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {SHAP_FEATURES.map((f, i) => (
-                <motion.div key={i} className="space-y-1.5"
-                  initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 + i * 0.08 }}>
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-[#1A2035]">{f.label}</span>
-                    <span style={{ color: f.positive ? '#00806D' : '#B91C1C' }}>
-                      {f.positive ? '+' : ''}{f.impact.toFixed(3)} impact
-                    </span>
-                  </div>
-                  <div className="h-2 w-full rounded-full overflow-hidden bg-[#F0F3F8]">
-                    <motion.div
-                      className="h-full rounded-full"
-                      style={{ background: f.positive ? 'linear-gradient(90deg, #00B67A, #00A8CB)' : 'linear-gradient(90deg, #EF4444, #F87171)' }}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.abs(f.impact) * 400}%` }}
-                      transition={{ duration: 0.8, delay: 0.3 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                    />
-                  </div>
-                </motion.div>
-              ))}
-              <div className="pt-3 border-t border-[#E3E8F0] mt-2">
-                <p className="text-xs text-[#A8B8D0]">
-                  SHAP values measure each feature's contribution to the model's prediction vs. the portfolio average. No protected attributes used.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Cash Flow Chart */}
-        <motion.div variants={staggerItem}>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Cash Flow Analysis</CardTitle>
-                  <CardDescription>Revenue vs. Operating Expenses — Last 6 Months</CardDescription>
-                </div>
-                <RiHistoryLine className="text-xl text-[#C8D3E6]" />
-              </div>
+              <CardTitle>Score History</CardTitle>
+              <CardDescription>All credit scoring events for this borrower ({scoreHistory.length} total)</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[260px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={MOCK_FINANCIAL} barGap={4} barCategoryGap="30%">
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F3F8" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#A8B8D0', fontSize: 11 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#A8B8D0', fontSize: 11 }}
-                      tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
-                    <Tooltip contentStyle={CHART_TOOLTIP} formatter={v => [`$${v.toLocaleString()}`, '']} />
-                    <Bar dataKey="revenue"  fill="#00A8CB" radius={[5,5,0,0]} name="Revenue" fillOpacity={0.85} />
-                    <Bar dataKey="expenses" fill="#E3E8F0" radius={[5,5,0,0]} name="Expenses" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex gap-5 mt-3 justify-center">
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-[#6B7A99]">
-                  <span className="w-3 h-3 rounded-sm" style={{ background: '#00A8CB' }} /> Revenue
-                </span>
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-[#6B7A99]">
-                  <span className="w-3 h-3 rounded-sm bg-[#E3E8F0] border border-[#C8D3E6]" /> Expenses
-                </span>
+              <div className="overflow-x-auto">
+                <table className="w-full tu-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Credit Score</th>
+                      <th>Risk Level</th>
+                      <th>Default Prob.</th>
+                      <th>Mode</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scoreHistory.slice(0, 10).map((s, i) => (
+                      <tr key={i}>
+                        <td className="text-[#6B7A99] text-xs">
+                          {s.scored_at ? new Date(s.scored_at).toLocaleString() : '—'}
+                        </td>
+                        <td>
+                          <span className="font-black font-heading" style={{
+                            color: s.credit_score >= 750 ? '#00806D' : s.credit_score >= 670 ? '#007FA3' : s.credit_score >= 580 ? '#B45309' : '#B91C1C'
+                          }}>{s.credit_score || '—'}</span>
+                        </td>
+                        <td>
+                          {s.risk_level && (
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold"
+                              style={{
+                                background: RISK_STYLE[s.risk_level]?.bg || '#F0F3F8',
+                                color: RISK_STYLE[s.risk_level]?.color || '#6B7A99'
+                              }}>
+                              {s.risk_level}
+                            </span>
+                          )}
+                        </td>
+                        <td className="text-[#6B7A99] text-xs">
+                          {s.probability_of_default != null ? `${(s.probability_of_default * 100).toFixed(1)}%` : '—'}
+                        </td>
+                        <td>
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#F0F3F8] text-[#6B7A99]">
+                            {s.mode || 'test'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
         </motion.div>
-      </div>
+      )}
 
-      {/* Risk Committee Recommendations */}
-      <motion.div variants={staggerItem}>
-        <Card style={{ borderLeft: '4px solid #F59E0B' }}>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#FEF3C7] flex items-center justify-center">
-                <RiInformationLine className="text-[#F59E0B] text-lg" />
-              </div>
-              <div>
-                <CardTitle>Risk Committee Recommendations</CardTitle>
-                <CardDescription>AI-generated strategic actions for this borrower</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { tag: 'Strategy',   title: 'Approve with Buffer',  desc: 'Strong resilience detected. Capital injection of $50k recommended with 90-day review.', tagBg: '#E6F7FB', tagColor: '#007FA3' },
-                { tag: 'Vigilance', title: 'Monthly Monitoring',   desc: 'High revenue volatility in Sept. Review mobile money statements monthly.', tagBg: '#FEF3C7', tagColor: '#B45309' },
-                { tag: 'Loyalty',   title: 'Priority Reward',      desc: 'Eligible for "Tier 1 Partner" status. Reduces interest rate by 0.5% on next loan.', tagBg: '#E6F9F2', tagColor: '#00806D' },
-              ].map((item, i) => (
-                <div key={i} className="p-4 rounded-xl border border-[#E3E8F0] bg-[#FAFBFC] flex flex-col justify-between hover:shadow-sm transition-shadow">
-                  <div>
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold mb-3"
-                      style={{ background: item.tagBg, color: item.tagColor }}>
-                      {item.tag}
-                    </span>
-                    <h5 className="font-bold text-sm text-[#1A2035] mb-1">{item.title}</h5>
-                    <p className="text-xs text-[#6B7A99] leading-relaxed">{item.desc}</p>
-                  </div>
-                  <button className="mt-4 flex items-center gap-1 text-xs font-bold text-[#00A8CB] hover:text-[#007FA3] transition-colors">
-                    View Details <RiArrowRightLine />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+      {/* Empty state when no scores yet */}
+      {scoreHistory.length === 0 && (
+        <motion.div variants={staggerItem}>
+          <Card className="text-center py-14 px-6 border-dashed border-2 border-[#C8D3E6]">
+            <RiPulseLine className="text-4xl text-[#C8D3E6] mx-auto mb-3" />
+            <h3 className="text-base font-black text-[#1A2035] mb-1">No Scores Yet</h3>
+            <p className="text-sm text-[#6B7A99] mb-6">
+              This borrower has not been scored. Click "Recalculate Score" to run the first assessment.
+            </p>
+            <Button onClick={handleRescore} disabled={scoring}>
+              {scoring ? <RiLoader4Line className="animate-spin" /> : <RiSparklingLine />}
+              Generate First Score
+            </Button>
+          </Card>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

@@ -5,7 +5,7 @@ import {
   RiDashboardLine, RiGroupLine, RiPulseLine, RiExchangeLine,
   RiBarChartLine, RiSettings4Line, RiLogoutBoxRLine,
   RiNotification3Line, RiSearchLine, RiMenuLine, RiCloseLine,
-  RiShieldCheckLine, RiUserLine, RiCodeSSlashLine
+  RiShieldCheckLine, RiUserLine, RiCodeSSlashLine, RiSparklingLine
 } from 'react-icons/ri';
 import { cn } from '../ui';
 
@@ -20,11 +20,13 @@ export function TopNav() {
     { to: '/dashboard', icon: RiDashboardLine, label: 'Dashboard' },
     ...(isLender ? [
       { to: '/borrowers', icon: RiGroupLine, label: 'Borrowers' },
+      { to: '/score-borrowers', icon: RiSparklingLine, label: 'Score' },
       { to: '/credit-scores', icon: RiPulseLine, label: 'Credit Scores' },
-    ] : []),
-    { to: '/transactions', icon: RiExchangeLine, label: 'Transactions' },
-    { to: '/analytics', icon: RiBarChartLine, label: 'Analytics' },
-    ...(!isLender ? [{ to: '/api-panel', icon: RiCodeSSlashLine, label: 'API Portal' }] : []),
+      { to: '/analytics', icon: RiBarChartLine, label: 'Analytics' },
+    ] : [
+      { to: '/analytics', icon: RiBarChartLine, label: 'Analytics' },
+      { to: '/api-panel', icon: RiCodeSSlashLine, label: 'API Portal' },
+    ]),
   ];
 
   return (

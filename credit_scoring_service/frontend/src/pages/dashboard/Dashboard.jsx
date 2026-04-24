@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { RiTeamLine, RiMoneyDollarCircleLine, RiPulseLine, RiAlertLine, RiSparklingLine, RiArrowRightUpLine, RiArrowRightDownLine, RiArrowRightLine } from 'react-icons/ri';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge, Button, AnimatedCounter, ScoreGauge, Skeleton, cn, staggerContainer, staggerItem } from '../../components/ui';
@@ -41,6 +42,7 @@ function KpiCard({ title, value, icon: Icon, change, changeLabel, iconBg, iconCo
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const isLender = user?.user_type?.toLowerCase() === 'lender';
@@ -90,9 +92,8 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline">Download Report</Button>
-            <Button>
-              <RiSparklingLine /> Risk Assessment
+            <Button onClick={() => navigate('/score-borrowers')}>
+              <RiSparklingLine /> Score Borrowers
             </Button>
           </div>
         </motion.div>
@@ -159,17 +160,17 @@ export default function Dashboard() {
                 </div>
                 <CardDescription>Powered by TransUnion-class ML</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm leading-relaxed text-[#6B7A99]">
-                  AI analysis indicates a <strong className="text-[#1A2035]">shift in default probability</strong> within retail sector SMEs. Bias audit passed: DIR = 0.91 ✓
-                </p>
-                <div className="p-3 rounded-xl bg-[#E6F9F2] border border-[#B3EDD9] flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#00B67A] animate-pulse-dot" />
-                  <span className="text-xs font-bold text-[#00806D]">Model Fairness: Excellent</span>
-                </div>
-                <Button className="w-full">
-                  <RiSparklingLine /> View Detailed Insights
-                </Button>
+                <CardContent className="space-y-4">
+                  <p className="text-sm leading-relaxed text-[#6B7A99]">
+                    Portfolio AI analysis is available in the <strong className="text-[#1A2035]">Credit Scores</strong> section. Score individual or bulk borrowers from the Score tab.
+                  </p>
+                  <div className="p-3 rounded-xl bg-[#E6F9F2] border border-[#B3EDD9] flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[#00B67A] animate-pulse-dot" />
+                    <span className="text-xs font-bold text-[#00806D]">Model Fairness: Excellent</span>
+                  </div>
+                  <Button className="w-full" onClick={() => navigate('/score-borrowers')}>
+                    <RiSparklingLine /> Score Borrowers Now
+                  </Button>
               </CardContent>
             </Card>
           </motion.div>
@@ -192,7 +193,7 @@ export default function Dashboard() {
             Insights for <strong className="text-[#1A2035]">{data?.business_name}</strong>
           </p>
         </div>
-        <Button>
+        <Button onClick={() => navigate('/score-borrowers')}>
           <RiSparklingLine /> Request New Scoring
         </Button>
       </motion.div>
@@ -291,7 +292,7 @@ export default function Dashboard() {
                 POST /v1/predict<br />
                 Authorization: Bearer {'<'}your-key{'>'}
               </div>
-              <Button variant="outline" className="w-full">Go to Developer Portal</Button>
+              <Button variant="outline" className="w-full" onClick={() => navigate('/api-panel')}>Go to Developer Portal</Button>
             </CardContent>
           </Card>
         </motion.div>

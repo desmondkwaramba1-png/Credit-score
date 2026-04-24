@@ -11,6 +11,7 @@ import CreditScores from './pages/CreditScores';
 import Transactions from './pages/Transactions';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import BatchScoring from './pages/BatchScoring';
 
 // ── Role-gated placeholder ─────────────────────────────────────────────────────
 const AccessDenied = ({ requiredRole }) => (
@@ -109,6 +110,10 @@ function AuthGate() {
         <Route
           path="/credit-scores"
           element={<RoleRoute element={<CreditScores />} roles={['lender']} label="Lender" />}
+        />
+        <Route
+          path="/score-borrowers"
+          element={<RoleRoute element={<BatchScoring />} roles={['lender']} label="Lender" />}
         />
         <Route
           path="/transactions"

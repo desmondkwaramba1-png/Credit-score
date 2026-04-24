@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     # ── CORS ───────────────────────────────────────────────────────────────────
     # Comma-separated list of allowed origins.  In production set this in .env.
     cors_origins_raw: str = Field(
-        default="http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,http://127.0.0.1:5174",
+        default="http://localhost:5173,http://localhost:5174,http://localhost:5175,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:5175",
         env="CORS_ORIGINS",
     )
 
