@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+.env
+credit_scoring.db
+.pytest_cache/
+catboost_info/
+debug_hang*.py
+test_output.txt
+node_modules/
+dist/
+.DS_Store

@@ -1,0 +1,309 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+@theme {
+  /* ── TransUnion Brand Palette ── */
+  --color-background: #F5F7FA;
+  --color-foreground: #1A2035;
+
+  --color-surface: #FFFFFF;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1A2035;
+
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #1A2035;
+
+  /* TransUnion Primary Turquoise */
+  --color-primary: #00A8CB;
+  --color-primary-dark: #007FA3;
+  --color-primary-light: #E6F7FB;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #00B67A;
+  --color-secondary-light: #E6F9F2;
+  --color-secondary-foreground: #ffffff;
+
+  --color-muted: #F0F3F8;
+  --color-muted-foreground: #6B7A99;
+
+  --color-accent: #F59E0B;
+  --color-accent-light: #FEF3C7;
+  --color-accent-foreground: #ffffff;
+
+  --color-destructive: #EF4444;
+  --color-destructive-light: #FEF2F2;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #E3E8F0;
+  --color-input: #FFFFFF;
+  --color-ring: #00A8CB;
+
+  /* Score Band Colors */
+  --color-score-excellent: #00B67A;
+  --color-score-good: #00A8CB;
+  --color-score-fair: #F59E0B;
+  --color-score-poor: #EF4444;
+
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-primary: 0 4px 16px rgba(0, 168, 203, 0.20);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--color-border);
+  }
+  body {
+    font-family: var(--font-sans);
+    background-color: #F5F7FA;
+    color: #1A2035;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ── Typography ── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin: 0;
+  font-weight: 700;
+  color: #1A2035;
+  letter-spacing: -0.02em;
+}
+
+p { margin: 0; }
+
+/* ── Custom Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #F0F3F8; }
+::-webkit-scrollbar-thumb {
+  background: #C8D3E6;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: #A8B8D0; }
+
+/* ── Card Surface ── */
+.tu-card {
+  background: #FFFFFF;
+  border: 1px solid #E3E8F0;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.tu-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  border-color: #C8D3E6;
+}
+
+/* ── Layout ── */
+.tu-page {
+  padding: 2rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  background: linear-gradient(135deg, #00A8CB 0%, #007FA3 100%);
+  color: white;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 168, 203, 0.25);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn-primary:hover {
+  box-shadow: 0 4px 16px rgba(0, 168, 203, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: white;
+  color: #1A2035;
+  border: 1px solid #E3E8F0;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-outline:hover {
+  border-color: #00A8CB;
+  color: #00A8CB;
+  background: #E6F7FB;
+}
+
+/* ── Score Band Badges ── */
+.score-excellent {
+  background: #E6F9F2;
+  color: #00806D;
+  border: 1px solid #B3EDD9;
+}
+.score-good {
+  background: #E6F7FB;
+  color: #007FA3;
+  border: 1px solid #B3E5F0;
+}
+.score-fair {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+.score-poor {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+}
+
+/* ── Top Navigation ── */
+.tu-nav {
+  background: #FFFFFF;
+  border-bottom: 1px solid #E3E8F0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* ── Status Badges ── */
+.badge {
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.badge-active   { background: #E6F9F2; color: #00806D; border: 1px solid #B3EDD9; }
+.badge-pending  { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+.badge-inactive { background: #F0F3F8; color: #6B7A99; border: 1px solid #E3E8F0; }
+.badge-danger   { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+.badge-primary  { background: #E6F7FB; color: #007FA3; border: 1px solid #B3E5F0; }
+
+/* ── Score Gauge ── */
+.score-gauge-track { stroke: #E3E8F0; }
+.score-gauge-fill-excellent { stroke: #00B67A; }
+.score-gauge-fill-good    { stroke: #00A8CB; }
+.score-gauge-fill-fair    { stroke: #F59E0B; }
+.score-gauge-fill-poor    { stroke: #EF4444; }
+
+/* ── Chart Tooltip (light) ── */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: #FFFFFF !important;
+  border: 1px solid #E3E8F0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10) !important;
+  color: #1A2035 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.8rem !important;
+}
+
+/* ── Section Divider ── */
+.tu-divider {
+  border: none;
+  border-top: 1px solid #E3E8F0;
+  margin: 1.5rem 0;
+}
+
+/* ── Input / Form ── */
+.tu-input {
+  width: 100%;
+  height: 2.5rem;
+  background: #FFFFFF;
+  border: 1px solid #E3E8F0;
+  border-radius: 8px;
+  padding: 0 0.875rem;
+  font-size: 0.875rem;
+  color: #1A2035;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.tu-input:focus {
+  border-color: #00A8CB;
+  box-shadow: 0 0 0 3px rgba(0, 168, 203, 0.12);
+}
+.tu-input::placeholder { color: #A8B8D0; }
+
+/* ── Keyframe Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.97) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes scoreReveal {
+  from { stroke-dashoffset: 502; }
+}
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.4); opacity: 0.7; }
+}
+
+.animate-fade-in { animation: fadeIn 0.4s ease forwards; }
+.animate-fade-in-scale { animation: fadeInScale 0.45s ease forwards; }
+.animate-shimmer {
+  background: linear-gradient(90deg, #F5F7FA 0%, #FFFFFF 50%, #F5F7FA 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+.animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+/* ── Utility: Primary Text ── */
+.text-primary { color: #00A8CB; }
+.text-primary-dark { color: #007FA3; }
+.text-muted { color: #6B7A99; }
+.text-heading { color: #1A2035; }
+
+/* ── Fairness Indicator ── */
+.fairness-good   { background: #E6F9F2; color: #00806D; border-left: 3px solid #00B67A; }
+.fairness-warn   { background: #FEF3C7; color: #B45309; border-left: 3px solid #F59E0B; }
+.fairness-danger { background: #FEF2F2; color: #B91C1C; border-left: 3px solid #EF4444; }
+
+/* Table */
+.tu-table th {
+  background: #F5F7FA;
+  color: #6B7A99;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #E3E8F0;
+}
+.tu-table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #F0F3F8;
+  font-size: 0.875rem;
+  color: #1A2035;
+}
+.tu-table tr:hover td { background: #F8FAFC; }
+.tu-table tr:last-child td { border-bottom: none; }

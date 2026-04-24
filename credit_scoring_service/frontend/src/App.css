@@ -1,0 +1,79 @@
+/* ── App-level layout and legacy overrides ── */
+
+/* Main Shell Layout */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Loading screen */
+.loading-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  background: #060a13;
+  color: var(--color-muted-foreground);
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(59, 130, 246, 0.15);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Coming soon empty state */
+.coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 60vh;
+  gap: 1rem;
+  padding: 3rem;
+}
+
+.coming-soon-icon {
+  color: var(--color-primary);
+  opacity: 0.6;
+  margin-bottom: 0.5rem;
+}
+
+.coming-soon p {
+  max-width: 400px;
+}
+
+/* Main Content Area */
+.app-content {
+  flex: 1;
+  padding: 2rem 3rem;
+  overflow-y: auto;
+}
+
+/* Chart tooltip override */
+.recharts-default-tooltip {
+  background: rgba(10, 14, 23, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(16px);
+}
+.recharts-tooltip-label {
+  color: #E8ECF4 !important;
+  font-weight: 600 !important;
+}
+.recharts-tooltip-item {
+  color: #7B8BA8 !important;
+}
